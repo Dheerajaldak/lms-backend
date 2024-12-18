@@ -6,6 +6,7 @@ import userRoutes from './routes/user.routes.js'
 import { config } from 'dotenv';
 import morgan from 'morgan';
 import errorMiddleware from './middlewares/error.middleware.js';
+import courseRoutes from './routes/course.routes.js'
 
 // Load environment variables
 config();
@@ -28,7 +29,8 @@ app.use('/ping', (req, res) => {
     res.send('pong');
 });
 
-app.use('/api/v1/user', userRoutes)
+app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/courses', courseRoutes);
 
 // Handle 404 errors
 app.all('*', (req, res) => {
