@@ -38,8 +38,6 @@ const register = async (req, res, next) => {
     }
 
     // TODO: file upload
-    console.log('File Details > ', JSON.stringify(req.file));
-
     if (req.file) {
         try {
             // img crop logic
@@ -82,10 +80,7 @@ const login = async (req, res, next) => {
             return next(new AppError('All fields are required', 400));
         }
 
-        const user = await User.findOne({
-            email
-        }).select('+password');
-
+        const user = await User.findOne({ email }).select('+password');
         if (!user || !user.comparePassword(password)) {
             return next(new AppError('Email or password does not match', 400));
         }
@@ -107,7 +102,7 @@ const login = async (req, res, next) => {
 
 const logout = (req, res) => {
     res.cookie('token', null, {
-        secure: process.env.NODE_ENV === 'production', // secure cookie only in production
+        secure: process.env.NODE_ENV === 'production',
         maxAge: 0,
         httpOnly: true
     });
@@ -150,11 +145,8 @@ const forgotPassword = async (req, res, next) => {
     await user.save();
 
     const resetPasswordURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
-
-    console.log(resetPasswordURL);
-
     const subject = 'Reset Password';
-    const message = `You can reset your password by clicking <a href=${resetPasswordURL} target="_blank">Reset your password</a>\nIf the above link does not work for some reason, copy and paste this link into a new tab: ${resetPasswordURL}.\nIf you have not requested this, kindly ignore.`;
+    const message = `You can reset your password by clicking <a href=${resetPasswordURL} target="_blank">Reset your password</a>.\nIf the link doesn't work, copy and paste this link into a new tab: ${resetPasswordURL}.`;
 
     try {
         await sendEmail(email, subject, message);
@@ -230,17 +222,19 @@ const changePassword = async (req, res, next) => {
     });
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     const { fullName } = req.body;
-    const { id } = req.user.id;
+    const { id } = req.user;  // Corrected line
 
     const user = await User.findById(id);
     if (!user) {
         return next(new AppError('User does not exist!', 400));
     }
-    if (req.fullName) {
+
+    if (fullName) {
         user.fullName = fullName;
     }
+
     if (req.file) {
         await cloudinary.v2.uploader.destroy(user.avatar.public_id);
         try {
@@ -264,12 +258,12 @@ const updateUser = async (req, res) => {
         }
     }
 
-    await usr.save();
+    await user.save();
     res.status(200).json({
         success: true,
         message: 'User details updated successfully!'
     });
-}
+};
 
 export {
     register,
